@@ -16,6 +16,8 @@ class Integer
 end
 
 module HarvestRuby
+  TILE_SIZE = 64
+
   module Helper
     def every(milliseconds, execute_on_first_call=false)
       last_called_at = instance_variable_get("@timer_for#{caller.to_s.hash.abs}")
@@ -25,6 +27,16 @@ module HarvestRuby
         instance_variable_set("@timer_for#{caller.to_s.hash.abs}", Gosu.milliseconds)
       end
     end
+
+    def to_grid_corner_coord(val, grid_size=TILE_SIZE)
+      (val / grid_size).floor * grid_size
+    end
+    alias :tgc :to_grid_corner_coord
+
+    def to_grid_center_coord(val, grid_size=TILE_SIZE)
+      to_grid_corner_coord(val, grid_size) + (grid_size / 2)
+    end
+    alias :tgm :to_grid_center_coord
   end
 
   class Crop < Struct.new :x, :y, :img
@@ -84,11 +96,12 @@ module HarvestRuby
 
     def draw
       @crops.each(&:draw)
+      @cursor.draw(tgm(mouse_x), tgm(mouse_y))
     end
 
     def spawn_crop
-      x,y = rand(800-64), rand(600-64)
-      @crops << Crop.new(x,y,load_image("Crops.png"))
+      x,y = rand(800-TILE_SIZE), rand(600-TILE_SIZE)
+      @crops << Crop.new(tgc(x),tgc(y),load_image("Crops.png"))
     end
   end
 end
