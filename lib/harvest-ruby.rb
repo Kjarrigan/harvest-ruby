@@ -58,6 +58,21 @@ module HarvestRuby
     end
   end
 
+  class Cursor < Struct.new :img
+    def initialize(*args)
+      super
+      @current = img.first
+    end
+
+    def animate
+      @current = img.push(img.shift).first
+    end
+
+    def draw(x,y)
+      @current.draw_rot(x,y,100,0)
+    end
+  end
+
   class Window < Gosu::Window
     include Helper
 
@@ -67,11 +82,12 @@ module HarvestRuby
       super(800,600,false)
 
       @crops = []
+      @cursor = Cursor.new(load_image('cursor.png', tile_size: 48))
     end
 
-    def load_image(file)
+    def load_image(file, tile_size: TILE_SIZE)
       @@images = {}
-      @@images[file] ||= Gosu::Image.load_tiles(File.join(MEDIA_PATH, file), 64, 64, retro: true)
+      @@images[file] ||= Gosu::Image.load_tiles(File.join(MEDIA_PATH, file), tile_size, tile_size, retro: true)
     end
 
     ACTION_LIST = {
@@ -87,6 +103,8 @@ module HarvestRuby
           crop.grow
           crop.dead?
         end
+
+        @cursor.animate
       end
 
       every 1.s do
