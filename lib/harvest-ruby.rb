@@ -73,6 +73,33 @@ module HarvestRuby
     end
   end
 
+  class HUD < Struct.new :x, :y, :img
+    def initialize(*args)
+      super
+      mode = :grab
+    end
+
+    def mode=(val)
+      @active_mode = val
+    end
+
+    ICON_IN_TILESET = {
+    # 0 => 'Blank'
+      hoe: 1,
+      can: 2,
+      seed: 3,
+      grab: 4,
+      trash: 5
+    #-1 => 'Active Overlay'
+    }
+    def draw
+      ICON_IN_TILESET.each do |ico,idx|
+        img[idx].draw(x,y+(idx*TILE_SIZE),98)
+        img[-1].draw(x,y+(idx*TILE_SIZE),99,1,1,0xff_ffffff, :additive) if @active_mode == ico
+      end
+    end
+  end
+
   class Window < Gosu::Window
     include Helper
 
@@ -83,6 +110,7 @@ module HarvestRuby
 
       @crops = []
       @cursor = Cursor.new(load_image('cursor.png', tile_size: 48))
+      @hud = HUD.new(0,0,load_image('HUD.png'))
     end
 
     def load_image(file, tile_size: TILE_SIZE)
@@ -91,10 +119,15 @@ module HarvestRuby
     end
 
     ACTION_LIST = {
-      Gosu::KbSpace => :spawn_crop
+      Gosu::KbSpace => :spawn_crop,
+      Gosu::Kb1 => [:set_mode, :hoe],
+      Gosu::Kb2 => [:set_mode, :can],
+      Gosu::Kb3 => [:set_mode, :seed],
+      Gosu::Kb4 => [:set_mode, :grab],
+      Gosu::Kb5 => [:set_mode, :trash],
     }
     def button_up(id)
-      self.send(ACTION_LIST[id]) if ACTION_LIST.has_key?(id)
+      self.send(*ACTION_LIST[id]) if ACTION_LIST.has_key?(id)
     end
 
     def update
@@ -115,11 +148,16 @@ module HarvestRuby
     def draw
       @crops.each(&:draw)
       @cursor.draw(tgm(mouse_x), tgm(mouse_y))
+      @hud.draw
     end
 
     def spawn_crop
       x,y = rand(800-TILE_SIZE), rand(600-TILE_SIZE)
       @crops << Crop.new(tgc(x),tgc(y),load_image("Crops.png"))
+    end
+
+    def set_mode(mode)
+      @hud.mode = mode
     end
   end
 end
