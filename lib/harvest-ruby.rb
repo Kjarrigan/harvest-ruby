@@ -18,6 +18,12 @@ end
 module HarvestRuby
   TILE_SIZE = 64
 
+  class Pos < Struct.new :x, :y
+    def self.[](x,y)
+      new(x,y)
+    end
+  end
+
   module Helper
     def every(milliseconds, execute_on_first_call=false)
       last_called_at = instance_variable_get("@timer_for#{caller.to_s.hash.abs}")
@@ -39,22 +45,39 @@ module HarvestRuby
     alias :tgm :to_grid_center_coord
   end
 
-  class Crop < Struct.new :x, :y, :img
+  class Crop < Struct.new :img
+    SPECIAL_STATES = {
+      sown: 0,
+      ripe: -3,
+      harvested: -2,
+      dead: -1
+    }
     def initialize(*args)
       super
       @current_crop = img.first
+      @state = 0
     end
 
-    def dead?
-      rand > 0.95
+    def state
+      inverse_idx = @state - img.size
+      @state == 0 ? :sown : SPECIAL_STATES.key(inverse_idx) || :growing
     end
 
     def grow
-      @current_crop = img.push(img.shift).first
+      @state += 1 if [:sown, :growing].include?(state)
     end
 
-    def draw
-      @current_crop.draw(x,y,0)
+    def harvest
+      return false unless state == :ripe
+      @state = img.size + SPECIAL_STATES[:harvested]
+    end
+
+    def wither
+      @state = img.size + SPECIAL_STATES[:dead]
+    end
+
+    def draw(x,y,z)
+      img[@state].draw(x,y,z)
     end
   end
 
@@ -99,7 +122,7 @@ module HarvestRuby
     def initialize
       super(800,600,false)
 
-      @crops = []
+      @crops = {}
       @cursor = Cursor.new(load_image('cursor.png', tile_size: 48))
       @hud = HUD.new(0,0,load_image('HUD.png'), :grab)
     end
@@ -110,6 +133,8 @@ module HarvestRuby
     end
 
     ACTION_LIST = {
+      Gosu::KbSpace => :manual_game_tick,
+      Gosu::KbReturn => :manual_season_change,
       Gosu::Kb1 => [:set_mode, :hoe],
       Gosu::Kb2 => [:set_mode, :can],
       Gosu::Kb3 => [:set_mode, :seed],
@@ -123,11 +148,6 @@ module HarvestRuby
 
     def update
       every 500.ms do
-        @crops.delete_if do |crop|
-          crop.grow
-          crop.dead?
-        end
-
         @cursor.animate
       end
 
@@ -137,8 +157,10 @@ module HarvestRuby
     end
 
     def draw
-      Gosu.draw_rect(0,0,800,600,0xff_088040,0)
-      @crops.each(&:draw)
+      Gosu.draw_rect(0,0,800,600,0xff_006040,0)
+      @crops.each do |pos,crop|
+        crop.draw(pos.x, pos.y, 5)
+      end
       @cursor.draw(tgm(mouse_x), tgm(mouse_y))
       @hud.draw
     end
@@ -147,16 +169,30 @@ module HarvestRuby
       @hud.mode = mode
     end
 
+    def manual_game_tick
+      @crops.values.each(&:grow)
+    end
+
+    def manual_season_change
+      @crops.values.each(&:wither)
+    end
+
     def primary_action
       puts "Do #{@hud.mode}"
-      tile_x, tile_y = tgc(mouse_x), tgc(mouse_y)
+      pos = Pos[tgc(mouse_x), tgc(mouse_y)]
+      crop = @crops[pos]
       case @hud.mode
 #       when :hoe
 #       when :can
       when :seed
-        @crops << Crop.new(tile_x,tile_y,load_image("Crops.png"))
-#       when :grab
-#       when :trash
+        return false if crop
+        @crops[pos] = Crop.new(load_image("Crops.png"))
+      when :grab
+        return false unless crop
+        crop.harvest
+      when :trash
+        return false unless crop
+        @crops.delete(pos)
       else
       end
     end
