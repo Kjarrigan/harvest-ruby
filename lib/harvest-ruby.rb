@@ -73,16 +73,7 @@ module HarvestRuby
     end
   end
 
-  class HUD < Struct.new :x, :y, :img
-    def initialize(*args)
-      super
-      mode = :grab
-    end
-
-    def mode=(val)
-      @active_mode = val
-    end
-
+  class HUD < Struct.new :x, :y, :img, :mode
     ICON_IN_TILESET = {
     # 0 => 'Blank'
       hoe: 1,
@@ -95,7 +86,7 @@ module HarvestRuby
     def draw
       ICON_IN_TILESET.each do |ico,idx|
         img[idx].draw(x,y+(idx*TILE_SIZE),98)
-        img[-1].draw(x,y+(idx*TILE_SIZE),99,1,1,0xff_ffffff, :additive) if @active_mode == ico
+        img[-1].draw(x,y+(idx*TILE_SIZE),99,1,1,0xff_ffffff, :additive) if mode == ico
       end
     end
   end
@@ -110,7 +101,7 @@ module HarvestRuby
 
       @crops = []
       @cursor = Cursor.new(load_image('cursor.png', tile_size: 48))
-      @hud = HUD.new(0,0,load_image('HUD.png'))
+      @hud = HUD.new(0,0,load_image('HUD.png'), :grab)
     end
 
     def load_image(file, tile_size: TILE_SIZE)
@@ -119,12 +110,12 @@ module HarvestRuby
     end
 
     ACTION_LIST = {
-      Gosu::KbSpace => :spawn_crop,
       Gosu::Kb1 => [:set_mode, :hoe],
       Gosu::Kb2 => [:set_mode, :can],
       Gosu::Kb3 => [:set_mode, :seed],
       Gosu::Kb4 => [:set_mode, :grab],
       Gosu::Kb5 => [:set_mode, :trash],
+      Gosu::MsLeft => :primary_action,
     }
     def button_up(id)
       self.send(*ACTION_LIST[id]) if ACTION_LIST.has_key?(id)
@@ -146,18 +137,28 @@ module HarvestRuby
     end
 
     def draw
+      Gosu.draw_rect(0,0,800,600,0xff_088040,0)
       @crops.each(&:draw)
       @cursor.draw(tgm(mouse_x), tgm(mouse_y))
       @hud.draw
     end
 
-    def spawn_crop
-      x,y = rand(800-TILE_SIZE), rand(600-TILE_SIZE)
-      @crops << Crop.new(tgc(x),tgc(y),load_image("Crops.png"))
-    end
-
     def set_mode(mode)
       @hud.mode = mode
+    end
+
+    def primary_action
+      puts "Do #{@hud.mode}"
+      tile_x, tile_y = tgc(mouse_x), tgc(mouse_y)
+      case @hud.mode
+#       when :hoe
+#       when :can
+      when :seed
+        @crops << Crop.new(tile_x,tile_y,load_image("Crops.png"))
+#       when :grab
+#       when :trash
+      else
+      end
     end
   end
 end
