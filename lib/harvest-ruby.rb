@@ -1,145 +1,11 @@
 require "harvest-ruby/version"
 require 'gosu'
-
-class Integer
-  def ms
-    self
-  end
-
-  def s
-    self * 1000
-  end
-
-  def min
-    self * 1000 * 60
-  end
-end
+require 'harvest-ruby/extension'
+require 'harvest-ruby/ui'
+require 'harvest-ruby/game_objects'
 
 module HarvestRuby
   TILE_SIZE = 64
-
-  class Pos < Struct.new :x, :y
-    def self.[](x,y)
-      new(x,y)
-    end
-  end
-
-  module Helper
-    def every(milliseconds, execute_on_first_call=false)
-      last_called_at = instance_variable_get("@timer_for#{caller.to_s.hash.abs}")
-
-      if (last_called_at.nil? && execute_on_first_call) or (Gosu.milliseconds > last_called_at.to_i+milliseconds)
-        yield
-        instance_variable_set("@timer_for#{caller.to_s.hash.abs}", Gosu.milliseconds)
-      end
-    end
-
-    def to_grid_corner_coord(val, grid_size=TILE_SIZE)
-      (val / grid_size).floor * grid_size
-    end
-    alias :tgc :to_grid_corner_coord
-
-    def to_grid_center_coord(val, grid_size=TILE_SIZE)
-      to_grid_corner_coord(val, grid_size) + (grid_size / 2)
-    end
-    alias :tgm :to_grid_center_coord
-  end
-
-  class Crop < Struct.new :img
-    SPECIAL_STATES = {
-      sown: 0,
-      ripe: -3,
-      harvested: -2,
-      dead: -1
-    }
-    def initialize(*args)
-      super
-      @current_crop = img.first
-      @state = 0
-    end
-
-    def state
-      inverse_idx = @state - img.size
-      @state == 0 ? :sown : SPECIAL_STATES.key(inverse_idx) || :growing
-    end
-
-    def grow
-      @state += 1 if [:sown, :growing].include?(state)
-    end
-
-    def harvest
-      return false unless state == :ripe
-      @state = img.size + SPECIAL_STATES[:harvested]
-    end
-
-    def wither
-      @state = img.size + SPECIAL_STATES[:dead]
-    end
-
-    def draw(x,y,z)
-      img[@state].draw(x,y,z)
-    end
-  end
-
-  class Cursor < Struct.new :img
-    def initialize(*args)
-      super
-      @current = img.first
-    end
-
-    def animate
-      @current = img.push(img.shift).first
-    end
-
-    def draw(x,y)
-      @current.draw_rot(x,y,100,0)
-    end
-  end
-
-  class HUD < Struct.new :x, :y, :width, :img, :mode, :coins
-    include Helper
-
-    ICON_IN_TILESET = {
-    # 0 => 'Blank'
-      hoe: 1,
-      can: 2,
-      seed: 3,
-      grab: 4,
-      trash: 5
-    #-1 => 'Active Overlay'
-    }
-    FONT_HEIGHT = 40
-    def initialize(*args)
-      super
-      @font = Gosu::Font.new(FONT_HEIGHT)
-      @button_pos = {}
-      ICON_IN_TILESET.each do |action,idx|
-        @button_pos[Pos.new(tgc(x+(idx*TILE_SIZE)), tgc(y))] = action
-      end
-    end
-
-    def set_mode_if_clicked(pos)
-      hit = @button_pos[pos]
-      self.mode = hit unless hit.nil?
-    end
-
-    def draw
-      # Panel Background
-      (width / TILE_SIZE.to_f).ceil.times do |i|
-        img[0].draw(x+(i*TILE_SIZE),y,97)
-      end
-
-      # Panel Actions
-      ICON_IN_TILESET.each do |ico,idx|
-        img[idx].draw(x+(idx*TILE_SIZE),y,98)
-        img[-1].draw(x+(idx*TILE_SIZE),y,99,1,1,0xff_ffffff, :additive) if mode == ico
-      end
-
-      # Currency
-      @font.draw("€ " + coins.to_s, x+20+(ICON_IN_TILESET.size+1)*TILE_SIZE, y+TILE_SIZE-FONT_HEIGHT, 98)
-    end
-  end
-
   class Window < Gosu::Window
     include Helper
 
@@ -228,6 +94,3 @@ module HarvestRuby
     end
   end
 end
-
-
-HarvestRuby::Window.new.show if __FILE__ == $0

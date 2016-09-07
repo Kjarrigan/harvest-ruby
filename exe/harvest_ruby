@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require 'harvest-ruby'
+
+HarvestRuby::Window.new.show
