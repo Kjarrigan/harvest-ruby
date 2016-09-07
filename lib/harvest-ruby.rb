@@ -96,7 +96,7 @@ module HarvestRuby
     end
   end
 
-  class HUD < Struct.new :x, :y, :img, :mode
+  class HUD < Struct.new :x, :y, :width, :img, :mode, :coins
     ICON_IN_TILESET = {
     # 0 => 'Blank'
       hoe: 1,
@@ -106,11 +106,26 @@ module HarvestRuby
       trash: 5
     #-1 => 'Active Overlay'
     }
+      FONT_HEIGHT = 40
+    def initialize(*args)
+      super
+      @font = Gosu::Font.new(FONT_HEIGHT)
+    end
+
     def draw
-      ICON_IN_TILESET.each do |ico,idx|
-        img[idx].draw(x,y+(idx*TILE_SIZE),98)
-        img[-1].draw(x,y+(idx*TILE_SIZE),99,1,1,0xff_ffffff, :additive) if mode == ico
+      # Panel Background
+      (width / TILE_SIZE.to_f).ceil.times do |i|
+        img[0].draw(x+(i*TILE_SIZE),y,97)
       end
+
+      # Panel Actions
+      ICON_IN_TILESET.each do |ico,idx|
+        img[idx].draw(x+(idx*TILE_SIZE),y,98)
+        img[-1].draw(x+(idx*TILE_SIZE),y,99,1,1,0xff_ffffff, :additive) if mode == ico
+      end
+
+      # Currency
+      @font.draw("€ " + coins.to_s, x+20+(ICON_IN_TILESET.size+1)*TILE_SIZE, y+TILE_SIZE-FONT_HEIGHT, 98)
     end
   end
 
@@ -118,13 +133,15 @@ module HarvestRuby
     include Helper
 
     MEDIA_PATH = File.expand_path('../media/', __dir__)
-
+    WIDTH = 768
+    HEIGHT = 512
     def initialize
-      super(800,600,false)
+      super(WIDTH,HEIGHT,false)
 
       @crops = {}
       @cursor = Cursor.new(load_image('cursor.png', tile_size: 48))
-      @hud = HUD.new(0,0,load_image('HUD.png'), :grab)
+      @hud = HUD.new(0,0,WIDTH,load_image('HUD.png'), :grab)
+      @hud.coins = 100
     end
 
     def load_image(file, tile_size: TILE_SIZE)
@@ -157,7 +174,7 @@ module HarvestRuby
     end
 
     def draw
-      Gosu.draw_rect(0,0,800,600,0xff_006040,0)
+      Gosu.draw_rect(0,0,WIDTH,HEIGHT,0xff_4d4331,0)
       @crops.each do |pos,crop|
         crop.draw(pos.x, pos.y, 5)
       end
