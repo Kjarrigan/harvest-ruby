@@ -97,6 +97,8 @@ module HarvestRuby
   end
 
   class HUD < Struct.new :x, :y, :width, :img, :mode, :coins
+    include Helper
+
     ICON_IN_TILESET = {
     # 0 => 'Blank'
       hoe: 1,
@@ -106,10 +108,19 @@ module HarvestRuby
       trash: 5
     #-1 => 'Active Overlay'
     }
-      FONT_HEIGHT = 40
+    FONT_HEIGHT = 40
     def initialize(*args)
       super
       @font = Gosu::Font.new(FONT_HEIGHT)
+      @button_pos = {}
+      ICON_IN_TILESET.each do |action,idx|
+        @button_pos[Pos.new(tgc(x+(idx*TILE_SIZE)), tgc(y))] = action
+      end
+    end
+
+    def set_mode_if_clicked(pos)
+      hit = @button_pos[pos]
+      self.mode = hit unless hit.nil?
     end
 
     def draw
@@ -197,7 +208,10 @@ module HarvestRuby
     def primary_action
       puts "Do #{@hud.mode}"
       pos = Pos[tgc(mouse_x), tgc(mouse_y)]
+      return if @hud.set_mode_if_clicked(pos)
+
       crop = @crops[pos]
+
       case @hud.mode
 #       when :hoe
 #       when :can
@@ -210,7 +224,6 @@ module HarvestRuby
       when :trash
         return false unless crop
         @crops.delete(pos)
-      else
       end
     end
   end
