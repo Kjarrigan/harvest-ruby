@@ -18,7 +18,7 @@ module HarvestRuby
       @crops = {}
       @cursor = Cursor.new(load_image('cursor.png', tile_size: 48))
       @hud = HUD.new(0,0,WIDTH,load_image('HUD.png'), :grab)
-      @hud.coins = 100
+      @hud.coins = 50
     end
 
     def load_image(file, tile_size: TILE_SIZE)
@@ -72,7 +72,6 @@ module HarvestRuby
     end
 
     def primary_action
-      puts "Do #{@hud.mode}"
       pos = Pos[tgc(mouse_x), tgc(mouse_y)]
       return if @hud.set_mode_if_clicked(pos)
 
@@ -83,13 +82,23 @@ module HarvestRuby
 #       when :can
       when :seed
         return false if crop
-        @crops[pos] = Crop.new(load_image("Crops.png"))
+
+        # seeds aren't for free
+        if @hud.coins >= 10
+          @hud.coins -= 10
+          @crops[pos] = Crop.new(load_image("Crops.png"))
+        end
       when :grab
         return false unless crop
-        crop.harvest
+        @hud.coins += crop.harvest
       when :trash
         return false unless crop
-        @crops.delete(pos)
+
+        # disposal of your trash isn't free either
+        if @hud.coins >= 2
+          @hud.coins -= 2
+          @crops.delete(pos)
+        end
       end
     end
   end

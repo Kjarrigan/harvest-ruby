@@ -22,8 +22,11 @@ module HarvestRuby
     end
 
     def harvest
-      return false unless state == :ripe
+      return 0 unless state == :ripe
       @state = img.size + SPECIAL_STATES[:harvested]
+
+      # Earnings for the sold fruits.
+      10 + rand(11)
     end
 
     def wither

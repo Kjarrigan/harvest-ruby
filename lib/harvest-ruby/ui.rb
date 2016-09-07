@@ -26,10 +26,12 @@ module HarvestRuby
       trash: 5
     #-1 => 'Active Overlay'
     }
-    FONT_HEIGHT = 40
+    SMALL_FONT_SIZE = 20
+    BIG_FONT_SIZE = 40
     def initialize(*args)
       super
-      @font = Gosu::Font.new(FONT_HEIGHT)
+      @small = Gosu::Font.new(SMALL_FONT_SIZE)
+      @big = Gosu::Font.new(BIG_FONT_SIZE)
       @button_pos = {}
       ICON_IN_TILESET.each do |action,idx|
         @button_pos[Pos.new(tgc(x+(idx*TILE_SIZE)), tgc(y))] = action
@@ -41,6 +43,13 @@ module HarvestRuby
       self.mode = hit unless hit.nil?
     end
 
+    ACTION_COST = {
+      hoe:   5,
+      can:   2,
+      seed: 10,
+      grab:  0,
+      trash: 2,
+    }
     def draw
       # Panel Background
       (width / TILE_SIZE.to_f).ceil.times do |i|
@@ -49,12 +58,19 @@ module HarvestRuby
 
       # Panel Actions
       ICON_IN_TILESET.each do |ico,idx|
-        img[idx].draw(x+(idx*TILE_SIZE),y,98)
-        img[-1].draw(x+(idx*TILE_SIZE),y,99,1,1,0xff_ffffff, :additive) if mode == ico
+        pos = Pos.new(x+(idx*TILE_SIZE),y)
+
+        img[idx].draw(pos.x,pos.y,98)
+        if mode == ico
+          img[-1].draw(pos.x,pos.y,99,1,1,0xf0_ffffff, :additive)
+          @small.draw(ACTION_COST[ico].to_s+' €',pos.x+15,pos.y+35,99,1,1,ACTION_COST[ico] > 0 ? 0xff_ff0000 : 0xff_088130)
+        else
+          @small.draw(idx,pos.x+40,pos.y+35,99,1,1,0xff_ffffff)
+        end
       end
 
       # Currency
-      @font.draw("€ " + coins.to_s, x+20+(ICON_IN_TILESET.size+1)*TILE_SIZE, y+TILE_SIZE-FONT_HEIGHT, 98)
+      @big.draw("€ " + coins.to_s, x+20+(ICON_IN_TILESET.size+1)*TILE_SIZE, y+TILE_SIZE-BIG_FONT_SIZE, 98)
     end
   end
 end
