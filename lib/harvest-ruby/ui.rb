@@ -14,7 +14,7 @@ module HarvestRuby
     end
   end
 
-  class HUD < Struct.new :x, :y, :width, :img, :mode, :coins
+  class HUD < Struct.new :x, :y, :width, :img, :mode, :coins, :day
     include Helper
 
     ICON_IN_TILESET = {
@@ -70,7 +70,10 @@ module HarvestRuby
       end
 
       # Currency
-      @big.draw("€ " + coins.to_s, x+20+(ICON_IN_TILESET.size+1)*TILE_SIZE, y+TILE_SIZE-BIG_FONT_SIZE, 98)
+      @big.draw("€ " + coins.to_s, x+20+(ICON_IN_TILESET.size+1)*TILE_SIZE, y+TILE_SIZE-BIG_FONT_SIZE, 98, 1, 1, 0xff_000000)
+
+      # Day
+      @big.draw("Day " + day.to_s, x+20+(ICON_IN_TILESET.size+4)*TILE_SIZE, y+TILE_SIZE-BIG_FONT_SIZE, 98, 1, 1, 0xff_000000)
     end
   end
 end

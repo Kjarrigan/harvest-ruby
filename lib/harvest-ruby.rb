@@ -19,6 +19,7 @@ module HarvestRuby
       @cursor = Cursor.new(load_image('cursor.png', tile_size: 48))
       @hud = HUD.new(0,0,WIDTH,load_image('HUD.png'), :grab)
       @hud.coins = 50
+      @hud.day = 1
     end
 
     def load_image(file, tile_size: TILE_SIZE)
@@ -65,6 +66,7 @@ module HarvestRuby
 
     def manual_game_tick
       @crops.values.each(&:grow)
+      @hud.day += 1
     end
 
     def manual_season_change
