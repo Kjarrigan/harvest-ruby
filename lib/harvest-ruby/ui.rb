@@ -16,25 +16,15 @@ module HarvestRuby
 
   class HUD < Struct.new :x, :y, :width, :img, :mode, :coins, :day
     include Helper
+    include Config
 
-    ICON_IN_TILESET = {
-      # 0 => 'Blank'
-      hoe: 1,
-      can: 2,
-      seed: 3,
-      grab: 4,
-      trash: 5
-    #-1 => 'Active Overlay'
-    }
-    SMALL_FONT_SIZE = 20
-    BIG_FONT_SIZE = 40
     def initialize(*args)
       super
-      @small = Gosu::Font.new(SMALL_FONT_SIZE)
-      @big = Gosu::Font.new(BIG_FONT_SIZE)
+      @small = Gosu::Font.new(cfg(:small_font_size))
+      @big = Gosu::Font.new(cfg(:big_font_size))
       @button_pos = {}
-      ICON_IN_TILESET.each do |action,idx|
-        @button_pos[Pos.new(tgc(x+(idx*TILE_SIZE)), tgc(y))] = action
+      cfg(:pos_in_tileset).each do |action,idx|
+        @button_pos[Pos.new(tgc(x+(idx*cfg(:tile_size, b: :window))), tgc(y))] = action
       end
     end
 
@@ -43,42 +33,35 @@ module HarvestRuby
       self.mode = hit unless hit.nil?
     end
 
-    ACTION_COST = {
-      hoe:   5,
-      can:   2,
-      seed: 10,
-      grab:  0,
-      trash: 2,
-    }
     def pay
-      cost = ACTION_COST[self.mode]
+      cost = cfg(:action_cost)[self.mode]
       self.coins >= cost  ? (self.coins -= cost) : false
     end
 
     def draw
       # Panel Background
-      (width / TILE_SIZE.to_f).ceil.times do |i|
-        img[0].draw(x+(i*TILE_SIZE),y,97)
+      (width / cfg(:tile_size, b: :window).to_f).ceil.times do |i|
+        img[0].draw(x+(i*cfg(:tile_size, b: :window)),y,97)
       end
 
       # Panel Actions
-      ICON_IN_TILESET.each do |ico,idx|
-        pos = Pos.new(x+(idx*TILE_SIZE),y)
+      cfg(:pos_in_tileset).each do |ico,idx|
+        pos = Pos.new(x+(idx*cfg(:tile_size, b: :window)),y)
 
         img[idx].draw(pos.x,pos.y,98)
         if mode == ico
           img[-1].draw(pos.x,pos.y,99,1,1,0xf0_ffffff, :additive)
-          @small.draw(ACTION_COST[ico].to_s+' €',pos.x+15,pos.y+35,99,1,1,ACTION_COST[ico] > 0 ? 0xff_ff0000 : 0xff_088130)
+          @small.draw(cfg(:action_cost)[ico].to_s+' €',pos.x+15,pos.y+35,99,1,1,cfg(:action_cost)[ico] > 0 ? 0xff_ff0000 : 0xff_088130)
         else
           @small.draw(idx,pos.x+40,pos.y+35,99,1,1,0xff_ffffff)
         end
       end
 
       # Currency
-      @big.draw("€ " + self.coins.to_s, x+20+(ICON_IN_TILESET.size+1)*TILE_SIZE, y+TILE_SIZE-BIG_FONT_SIZE, 98, 1, 1, 0xff_000000)
+      @big.draw("€ " + self.coins.to_s, x+20+(cfg(:pos_in_tileset).size+1)*cfg(:tile_size, b: :window), y+cfg(:tile_size, b: :window)-cfg(:big_font_size), 98, 1, 1, 0xff_000000)
 
       # Day
-      @big.draw("Day " + day.to_s, x+20+(ICON_IN_TILESET.size+4)*TILE_SIZE, y+TILE_SIZE-BIG_FONT_SIZE, 98, 1, 1, 0xff_000000)
+      @big.draw("Day " + day.to_s, x+20+(cfg(:pos_in_tileset).size+4)*cfg(:tile_size, b: :window), y+cfg(:tile_size, b: :window)-cfg(:big_font_size), 98, 1, 1, 0xff_000000)
     end
   end
 end

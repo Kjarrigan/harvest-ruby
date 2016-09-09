@@ -12,6 +12,20 @@ class Integer
   end
 end
 
+class Hash
+  def symbolize_keys
+    (self.map do |key,value|
+      v = value.kind_of?(Hash) ? value.symbolize_keys : value
+      [key.to_sym, v]
+    end).to_h
+  end
+
+  def method_missing(name, *args, &block)
+    raise "undefined key: #{name}" unless self.has_key?(name)
+    self[name]
+  end
+end
+
 module HarvestRuby
   class Pos < Struct.new :x, :y
     def self.[](x,y)
@@ -29,14 +43,24 @@ module HarvestRuby
       end
     end
 
-    def to_grid_corner_coord(val, grid_size=TILE_SIZE)
+    def to_grid_corner_coord(val, grid_size=CONFIG.window.tile_size)
       (val / grid_size).floor * grid_size
     end
     alias :tgc :to_grid_corner_coord
 
-    def to_grid_center_coord(val, grid_size=TILE_SIZE)
+    def to_grid_center_coord(val, grid_size=CONFIG.window.tile_size)
       to_grid_corner_coord(val, grid_size) + (grid_size / 2)
     end
     alias :tgm :to_grid_center_coord
+  end
+
+  module Config
+    def cfg(*keys, b: nil)
+      val = CONFIG.send(b || self.class.to_s.downcase.gsub('test', '').split('::').last.to_sym)
+      keys.each do |k|
+        val = val.send(k)
+      end
+      val
+    end
   end
 end

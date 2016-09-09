@@ -1,0 +1,33 @@
+---
+window:
+  width: 768
+  height: 512
+  tile_size: 64
+  cursor_size: 48
+  default_mode: :grab
+  bg_color: 0xff_4d4331
+crop:
+  special_states:
+    sown: 0,
+    ripe: -5,
+    harvested: -4,
+    dead: -3,
+    water: -2,
+    soil: -1
+  reward_base: 10
+  reward_random: 11
+hud:
+  action_cost:
+    hoe:   5,
+    can:   2,
+    seed: 10,
+    grab:  0,
+    trash: 2
+  small_font_size: 20
+  big_font_size: 40
+  pos_in_tileset:
+    hoe: 1,
+    can: 2,
+    seed: 3,
+    grab: 4,
+    trash: 5

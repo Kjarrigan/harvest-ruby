@@ -35,7 +35,7 @@ class Test < Minitest::Test
 
   def test_primary_action
     window = TestWindow.new
-    dummy_pos = HarvestRuby::Pos[2*HarvestRuby::TILE_SIZE,2*HarvestRuby::TILE_SIZE]
+    dummy_pos = HarvestRuby::Pos[2*HarvestRuby::CONFIG.window.tile_size,2*HarvestRuby::CONFIG.window.tile_size]
     window.mouse_x = dummy_pos.x
     window.mouse_y = dummy_pos.y
 
@@ -43,7 +43,7 @@ class Test < Minitest::Test
     # is there are crop (or in change of seed-mode inverse) and do i have enough coins
     [false, true].each do |crop_available|
       {false => 0, true => 100}.each do |enough_money_for_action,coins|
-        HarvestRuby::HUD::ACTION_COST.each do |action, cost|
+        HarvestRuby::CONFIG.hud.action_cost.each do |action, cost|
 
           window.crops.delete(dummy_pos)
           if crop_available

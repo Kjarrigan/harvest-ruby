@@ -3,27 +3,28 @@ require 'gosu'
 require 'harvest-ruby/extension'
 require 'harvest-ruby/ui'
 require 'harvest-ruby/game_objects'
+require 'yaml'
 
 module HarvestRuby
-  TILE_SIZE = 64
+  CONFIG = YAML.load_file(File.expand_path('../config.yml', __dir__)).symbolize_keys
+
   class Window < Gosu::Window
     include Helper
+    include Config
 
     MEDIA_PATH = File.expand_path('../media/', __dir__)
-    WIDTH = 768
-    HEIGHT = 512
 
     def initialize
-      super(WIDTH,HEIGHT,false)
+      super(cfg(:width),cfg(:height),false)
 
       @crops = {}
-      @cursor = Cursor.new(load_image('cursor.png', tile_size: 48))
-      @hud = HUD.new(0,0,WIDTH,load_image('HUD.png'), :grab)
+      @cursor = Cursor.new(load_image('cursor.png', tile_size: cfg(:cursor_size)))
+      @hud = HUD.new(0,0,cfg(:width),load_image('HUD.png'), cfg(:default_mode))
       @hud.coins = 50
       @hud.day = 1
     end
 
-    def load_image(file, tile_size: TILE_SIZE)
+    def load_image(file, tile_size: cfg(:tile_size))
       @@images = {}
       @@images[file] ||= Gosu::Image.load_tiles(File.join(MEDIA_PATH, file), tile_size, tile_size, retro: true)
     end
@@ -53,7 +54,7 @@ module HarvestRuby
     end
 
     def draw
-      Gosu.draw_rect(0,0,WIDTH,HEIGHT,0xff_4d4331,0)
+      Gosu.draw_rect(0,0,cfg(:width),cfg(:height),cfg(:bg_color),0)
       @crops.each do |pos,crop|
         crop.draw(pos.x, pos.y, 5)
       end
