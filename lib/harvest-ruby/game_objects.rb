@@ -1,10 +1,12 @@
 module HarvestRuby
-  class Crop < Struct.new :img
+  class Crop < Struct.new :img, :water, :soil
     SPECIAL_STATES = {
       sown: 0,
-      ripe: -3,
-      harvested: -2,
-      dead: -1
+      ripe: -5,
+      harvested: -4,
+      dead: -3,
+      water: -2,
+      soil: -1
     }
     def initialize(*args)
       super
@@ -34,6 +36,8 @@ module HarvestRuby
     end
 
     def draw(x,y,z)
+      img[SPECIAL_STATES[:soil]].draw(x,y,z) if self.soil
+      img[SPECIAL_STATES[:water]].draw(x,y,z,1,1,0x30_ffffff, :additive) if self.water
       img[@state].draw(x,y,z)
     end
   end

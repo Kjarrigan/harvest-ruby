@@ -50,6 +50,11 @@ module HarvestRuby
       grab:  0,
       trash: 2,
     }
+    def pay
+      cost = ACTION_COST[self.mode]
+      self.coins >= cost  ? (self.coins -= cost) : false
+    end
+
     def draw
       # Panel Background
       (width / TILE_SIZE.to_f).ceil.times do |i|
@@ -70,7 +75,7 @@ module HarvestRuby
       end
 
       # Currency
-      @big.draw("€ " + coins.to_s, x+20+(ICON_IN_TILESET.size+1)*TILE_SIZE, y+TILE_SIZE-BIG_FONT_SIZE, 98, 1, 1, 0xff_000000)
+      @big.draw("€ " + self.coins.to_s, x+20+(ICON_IN_TILESET.size+1)*TILE_SIZE, y+TILE_SIZE-BIG_FONT_SIZE, 98, 1, 1, 0xff_000000)
 
       # Day
       @big.draw("Day " + day.to_s, x+20+(ICON_IN_TILESET.size+4)*TILE_SIZE, y+TILE_SIZE-BIG_FONT_SIZE, 98, 1, 1, 0xff_000000)

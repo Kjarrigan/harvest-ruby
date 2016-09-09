@@ -12,6 +12,7 @@ module HarvestRuby
     MEDIA_PATH = File.expand_path('../media/', __dir__)
     WIDTH = 768
     HEIGHT = 512
+
     def initialize
       super(WIDTH,HEIGHT,false)
 
@@ -65,8 +66,14 @@ module HarvestRuby
     end
 
     def manual_game_tick
-      @crops.values.each(&:grow)
       @hud.day += 1
+
+      @crops.values.each do |crop|
+        crop.grow
+
+        crop.soil = false if rand > 0.7
+        crop.water = false
+      end
     end
 
     def manual_season_change
@@ -79,29 +86,23 @@ module HarvestRuby
 
       crop = @crops[pos]
 
-      case @hud.mode
-#       when :hoe
-#       when :can
-      when :seed
-        return false if crop
+      return false if (@hud.mode == :seed && crop) or (@hud.mode != :seed && !crop) or !@hud.pay
 
-        # seeds aren't for free
-        if @hud.coins >= 10
-          @hud.coins -= 10
-          @crops[pos] = Crop.new(load_image("Crops.png"))
-        end
+      case @hud.mode
+      when :hoe
+        crop.soil = true
+      when :can
+        crop.water = true
+      when :seed
+        @crops[pos] = Crop.new(load_image("Crops.png"))
       when :grab
-        return false unless crop
         @hud.coins += crop.harvest
       when :trash
-        return false unless crop
-
-        # disposal of your trash isn't free either
-        if @hud.coins >= 2
-          @hud.coins -= 2
-          @crops.delete(pos)
-        end
+        @crops.delete(pos)
       end
+
+      # necessary for the test
+      return true
     end
   end
 end
