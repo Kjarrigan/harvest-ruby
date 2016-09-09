@@ -4,9 +4,16 @@ window:
   height: 512
   tile_size: 64
   cursor_size: 48
-  default_mode: :grab
+  default_mode: :seed
   bg_color: 0xff_4d4331
+  start_coins: 51 # 3 x (seed + can + hoe)
 crop:
+  quality:
+    initial: $(40..60)
+    hoe: 2
+    can: 5
+    wither_threshold: 30
+    # wither_chance: $70 + self.quality
   special_states:
     sown: 0,
     ripe: -5,
@@ -14,12 +21,13 @@ crop:
     dead: -3,
     water: -2,
     soil: -1
-  reward_base: 10
-  reward_random: 11
+  reward:
+    base: 10
+    quality: 50
 hud:
   action_cost:
-    hoe:   5,
-    can:   2,
+    hoe:   3,
+    can:   1,
     seed: 10,
     grab:  0,
     trash: 2

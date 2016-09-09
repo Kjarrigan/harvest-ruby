@@ -20,7 +20,7 @@ module HarvestRuby
       @crops = {}
       @cursor = Cursor.new(load_image('cursor.png', tile_size: cfg(:cursor_size)))
       @hud = HUD.new(0,0,cfg(:width),load_image('HUD.png'), cfg(:default_mode))
-      @hud.coins = 50
+      @hud.coins = cfg(:start_coins)
       @hud.day = 1
     end
 
@@ -31,7 +31,6 @@ module HarvestRuby
 
     ACTION_LIST = {
       Gosu::KbSpace => :manual_game_tick,
-      Gosu::KbReturn => :manual_season_change,
       Gosu::Kb1 => [:set_mode, :hoe],
       Gosu::Kb2 => [:set_mode, :can],
       Gosu::Kb3 => [:set_mode, :seed],
@@ -75,10 +74,6 @@ module HarvestRuby
         crop.soil = false if rand > 0.7
         crop.water = false
       end
-    end
-
-    def manual_season_change
-      @crops.values.each(&:wither)
     end
 
     def primary_action

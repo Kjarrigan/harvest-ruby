@@ -5,6 +5,7 @@ class Test < Minitest::Test
     refute_nil ::HarvestRuby::VERSION
   end
 
+  # since the introduction of quality this test is somewhat broken, so just define the quality as 100% and it works again
   def test_crop_state_calculation
     expectation = {
       0 => :sown,
@@ -17,20 +18,24 @@ class Test < Minitest::Test
     crop = HarvestRuby::Crop.new(Array.new(10))
 
     expectation.each do |idx,expected_state|
-      assert_equal crop.state, expected_state, "Iteration ##{idx+1}"
+      assert_equal expected_state, crop.state, "Iteration ##{idx+1}"
+      crop.quality = 100
       crop.grow
     end
 
     # no matter how often you call grow, if it's ripe nothing should happen.
     # the remaining two states are only triggered by event
-    10.times do crop.grow end
-    assert_equal crop.state, :ripe
+    10.times do
+      crop.quality = 100
+      crop.grow
+    end
+    assert_equal :ripe, crop.state
 
     crop.harvest
-    assert_equal crop.state, :harvested
+    assert_equal :harvested, crop.state
 
     crop.wither
-    assert_equal crop.state, :dead
+    assert_equal :dead, crop.state
   end
 
   def test_primary_action
