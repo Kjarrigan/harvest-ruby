@@ -22,7 +22,10 @@ class Hash
 
   def method_missing(name, *args, &block)
     raise "undefined key: #{name}" unless self.has_key?(name)
-    self[name]
+
+    val = self[name]
+    val = eval(val[1..-1]) if val =~ /^\$/
+    val
   end
 end
 
@@ -60,6 +63,7 @@ module HarvestRuby
       keys.each do |k|
         val = val.send(k)
       end
+      val = eval(val[1..-1]) if val =~ /^\$/
       val
     end
   end
