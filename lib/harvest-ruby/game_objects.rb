@@ -3,6 +3,7 @@ module HarvestRuby
     include Config
 
     attr_accessor :quality
+    # attr_reader :state
 
     def initialize(*args)
       super
@@ -10,6 +11,8 @@ module HarvestRuby
       @state = cfg(:special_states).sown
 
       @quality = rand(cfg(:quality).initial)
+
+      @font = Gosu::Font.new(10) if cfg(:quality).debug
     end
 
     def state
@@ -48,6 +51,8 @@ module HarvestRuby
       img[cfg(:special_states).soil].draw(x,y,z) if self.soil
       img[cfg(:special_states).water].draw(x,y,z,1,1,0x30_ffffff, :additive) if self.water
       img[@state].draw(x,y,z)
+
+      @font.draw(@quality,x,y,z+1) if cfg(:quality).debug
     end
   end
 end
