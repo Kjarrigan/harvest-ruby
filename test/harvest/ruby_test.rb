@@ -41,6 +41,7 @@ class Test < Minitest::Test
   def test_primary_action
     window = TestWindow.new
     dummy_pos = HarvestRuby::Pos[2*HarvestRuby::CONFIG.window.tile_size,2*HarvestRuby::CONFIG.window.tile_size]
+    window.game_mode = :running
     window.mouse_x = dummy_pos.x
     window.mouse_y = dummy_pos.y
 
