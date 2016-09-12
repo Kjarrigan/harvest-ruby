@@ -75,8 +75,7 @@ module HarvestRuby
       'coins (see the selected field for the amount)': {x_offset: 20},
       '- The game is turn-based - press <SPACE>': {},
       'to end the day.': {x_offset: 20},
-      "- The game is over if you survived for a full": {},
-      "year or you run out of coins.": {x_offset: 20}
+      "- The game is over after 90 days": {}
     }
     def draw
       Gosu.draw_rect(0,0,cfg(:width),cfg(:height),cfg(:bg_color),0)
@@ -134,7 +133,7 @@ module HarvestRuby
           crop.water = false
         end
 
-        @game_mode = :finished if game_lost? or @hud.day == 365
+        @game_mode = :finished if game_lost? or @hud.day == 90
         @hud.day += 1
       when :finished
         reset_game

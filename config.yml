@@ -7,7 +7,7 @@ window:
   default_mode: :seed
   bg_color: 0xff_4d4331
   pause_color: 0x80_c0c0c0
-  start_coins: 51 # 3 x (seed + can + hoe)
+  start_coins: 50
 crop:
   quality:
     initial: $(40..60)
