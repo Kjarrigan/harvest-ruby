@@ -31,8 +31,8 @@ module HarvestRuby
         @quality += self.water ? cfg(:quality).can : -cfg(:quality).can
         @quality += self.soil ? cfg(:quality).hoe : -cfg(:quality).hoe
 
-        self.wither if @quality <= cfg(:quality).wither_threshold # && rand(100) >= cfg(:quality).wither_chance
       end
+      self.wither if @quality <= cfg(:quality).wither_threshold or state == :harvested # && rand(100) >= cfg(:quality).wither_chance
     end
 
     def harvest
