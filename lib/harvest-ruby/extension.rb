@@ -55,6 +55,20 @@ module HarvestRuby
       to_grid_corner_coord(val, grid_size) + (grid_size / 2)
     end
     alias :tgm :to_grid_center_coord
+
+
+    # Note from gosu-docu: OpenGL lines are not reliable at all and may have a missing pixel at the start or end point. Relying on your machine's behavior can only end in tears. Recommended for debugging purposes only.
+    def draw_line(x1, y1, c1, x2, y2, c2, z, w=1, mode=:default)
+      if w == 1
+        Gosu.draw_triangle(x1,y1,c1,x1+w,y1,c1,x2,y2,c2,z,mode)
+      else
+        Gosu.draw_quad(x1,y1,c1,x1+w,y1,c1,x2+w,y2,c2,x2,y2,c2,z,mode)
+      end
+    end
+
+    def draw_arrow(x,y,z,c=0xff_000000,w=1)
+      draw_line(x,y,c,x,y-50,c,z,w)
+    end
   end
 
   module Config
